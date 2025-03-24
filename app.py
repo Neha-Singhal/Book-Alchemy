@@ -120,7 +120,7 @@ def add_book():
     authors = Author.query.all()
     return render_template('add_book.html', authors=authors)
 
-@app.route('/book/<int:book_id>/delete', methods=['POST'])
+@app.route('/book/<int:book_id>/delete', methods=['POST','DELETE'])
 def delete_book(book_id):
     book = Book.query.get_or_404(book_id)  # Fetch book or return 404 if not found
 
