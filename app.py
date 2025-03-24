@@ -96,10 +96,11 @@ def add_author():
 def add_book():
     if request.method == 'POST':
         try:
-            isbn = request.form['isbn']
-            title = request.form['title']
-            publication_year = int(request.form['publication_year'])
+            isbn = request.form.get('isbn')
+            title = request.form.get('title')
+            publication_year = request.form.get('publication_year')
             author_id = int(request.form['author_id'])
+
             new_book = Book(isbn=isbn, title=title, publication_year=publication_year, author_id=author_id)
 
             db.session.add(new_book)
@@ -120,26 +121,27 @@ def add_book():
     authors = Author.query.all()
     return render_template('add_book.html', authors=authors)
 
-@app.route('/book/<int:book_id>/delete', methods=['POST','DELETE'])
+@app.route('/book/<int:book_id>/delete', methods=['GET','POST'])
 def delete_book(book_id):
-    book = Book.query.get_or_404(book_id)  # Fetch book or return 404 if not found
+    method = request.form.get('_method', 'POST')
 
-    # Get the author ID before deleting the book
-    author_id = book.author_id
+    if method == 'DELETE':  # Simulate DELETE request
+        book = Book.query.get_or_404(book_id)
+        author_id = book.author_id
 
-    db.session.delete(book)
-    db.session.commit()
+        db.session.delete(book)
+        db.session.commit()
 
-    # Check if the author has any other books left
-    remaining_books = Book.query.filter_by(author_id=author_id).first()
-    if not remaining_books:
-        author = Author.query.get(author_id)
-        if author:
-            db.session.delete(author)
-            db.session.commit()
+        # Delete author if they have no other books
+        if not Book.query.filter_by(author_id=author_id).first():
+            author = Author.query.get(author_id)
+            if author:
+                db.session.delete(author)
+                db.session.commit()
 
-    flash(f"Book '{book.title}' has been deleted successfully!", 'success')
+        flash(f"Book '{book.title}' has been deleted successfully!", 'success')
     return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

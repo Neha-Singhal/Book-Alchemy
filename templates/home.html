@@ -13,20 +13,30 @@
     <form method="GET" action="/">
         <label for="sort_by">Sort by:</label>
         <select name="sort_by" id="sort_by" onchange="this.form.submit()">
-            <option value="title" {% if sort_by == 'title' %} selected {% endif %}>Title</option>
-            <option value="author" {% if sort_by == 'author' %} selected {% endif %}>Author</option>
+            <option value="title" {% if sort_by =='title' %} selected {% endif %}>Title</option>
+            <option value="author" {% if sort_by =='author' %} selected {% endif %}>Author</option>
         </select>
     </form>
 
+    {% if books %}
     <div class="book-list">
         {% for book in books %}
             <div class="book">
-                <img src="{{ book.cover_image or 'https://via.placeholder.com/150' }}" alt="Book Cover">
+                <img src="{{ book.cover_image }}" alt="Book Cover">
                 <h3>{{ book.title }}</h3>
                 <p><strong>Author:</strong> {{ book.author }}</p>
                 <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+
+                <!-- Delete Book Form -->
+                <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                    <button type="submit">Delete Book</button>
+                </form>
             </div>
         {% endfor %}
+    </div>
+{% else %}
+    <p>No books found. Try adding a book or searching for another title.</p>
+{% endif %}
     </div>
 
     <footer>
