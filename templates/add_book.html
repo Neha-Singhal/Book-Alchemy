@@ -19,9 +19,9 @@
 
         <label for="author_id">Select Author:</label>
         <select id="author_id" name="author_id" required>
-            <option value="" >Select Author</option>
+            <option value="" disabled selected >Select Author</option>
             {% for author in authors %}
-                <option value="{{ author.id }}">{{ author.name }}</option>
+                <option value="{{author.author_id}}">{{ author.name }}</option>
             {% endfor %}
         </select><br><br>
 

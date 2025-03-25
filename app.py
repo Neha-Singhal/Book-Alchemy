@@ -28,7 +28,9 @@ def home():
     sort_by = request.args.get('sort_by', 'title')
 
     # Base query: join books with authors
-    query = Book.query.join(Author).add_columns(Book.title, Author.name, Book.isbn)
+    query = db.session.query(
+        Book.book_id, Book.title, Book.isbn, Author.name.label("author")
+    ).join(Author)
 
     # Apply search filter
     if search_query:
@@ -51,13 +53,14 @@ def home():
 
         # Fetch book details
     book_details = []
-    for book, author_name, isbn in books:
-        cover_image = get_cover_image(isbn)
+    for book in books:
+        cover_image = get_cover_image(book.isbn)
         book_details.append({
-            'title': book,
-            'author': author_name,
+            'title': book.title,
+            'author':book.author,
             'cover_image': cover_image,
-            'isbn': isbn
+            'isbn': book.isbn,
+            'book_id': book.book_id
         })
 
     return render_template('home.html', books=book_details, sort_by=sort_by, message=message)
@@ -95,12 +98,14 @@ def add_author():
 @app.route('/add_book', methods=['GET', 'POST'])
 def add_book():
     if request.method == 'POST':
+
         try:
+            print("request.form",request.form)
             isbn = request.form.get('isbn')
             title = request.form.get('title')
+
             publication_year = request.form.get('publication_year')
             author_id = int(request.form['author_id'])
-
             new_book = Book(isbn=isbn, title=title, publication_year=publication_year, author_id=author_id)
 
             db.session.add(new_book)
@@ -125,23 +130,22 @@ def add_book():
 def delete_book(book_id):
     method = request.form.get('_method', 'POST')
 
-    if method == 'DELETE':  # Simulate DELETE request
-        book = Book.query.get_or_404(book_id)
-        author_id = book.author_id
 
-        db.session.delete(book)
-        db.session.commit()
+    book = Book.query.get_or_404(book_id)
+    author_id = book.author_id
 
-        # Delete author if they have no other books
-        if not Book.query.filter_by(author_id=author_id).first():
-            author = Author.query.get(author_id)
-            if author:
-                db.session.delete(author)
-                db.session.commit()
+    db.session.delete(book)
+    db.session.commit()
 
+    # Delete author if they have no other books
+    if not Book.query.filter_by(author_id=author_id).first():
+        author = Author.query.get(author_id)
+        if author:
+            db.session.delete(author)
+            db.session.commit()
         flash(f"Book '{book.title}' has been deleted successfully!", 'success')
     return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port=5002)
