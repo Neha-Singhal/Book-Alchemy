@@ -40,8 +40,8 @@
         {% for book in books %}
             <div class="book">
                 <img src="{{ book.cover_image }}" alt="Book Cover">
-                <h3>{{ book.title }}</h3>
-                <p><strong>Author:</strong> {{ book.author }}</p>
+                <h3><a href="{{url_for('book_detail', book_id=book.book_id) }}">{{ book.title }}</a></h3>
+                <p><strong>Author:</strong> {{ book.author.name }}</p>
                 <p><strong>ISBN:</strong> {{ book.isbn }}</p>
 
                 <!-- Delete Book Form -->
@@ -54,7 +54,7 @@
 {% else %}
     <p>No books found. Try adding a book or searching for another title.</p>
 {% endif %}
-    </div>
+
 
     <footer>
         <p>&copy; 2025 Your Bookstore. All rights reserved.</p>

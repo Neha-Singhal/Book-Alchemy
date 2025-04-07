@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} - Details</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+   <a href="{{ url_for('home') }}">Home</a>
+    </nav>
+
+    <div class="book-detail">
+        <h1>{{ book.title }}</h1>
+        <p><strong>Author:</strong> <a href="{{ url_for('author_detail', author_id=book.author.id) }}">{{ book.author.name }}</a></p>
+        <p><strong>Year:</strong> {{ book.year }}</p>
+        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        <img src="{{ book.cover_image }}" alt="Cover of {{ book.title }}">
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Your Bookstore</p>
+    </footer>
+</body>
+</html>
