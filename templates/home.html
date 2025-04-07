@@ -7,16 +7,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Welcome to the Library!</h1>
+    <h1>Welcome to the Book Library!</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for category, message in messages %}
+        <li class="flash {{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 
-    <!-- Sorting Controls -->
+    <!-- Sorting  and Search Controls -->
     <form method="GET" action="/">
         <label for="sort_by">Sort by:</label>
         <select name="sort_by" id="sort_by" onchange="this.form.submit()">
             <option value="title" {% if sort_by =='title' %} selected {% endif %}>Title</option>
             <option value="author" {% if sort_by =='author' %} selected {% endif %}>Author</option>
         </select>
+        <label for="search">Search for a book:</label>
+        <input type="text" name="search" id="search" placeholder="Enter book title or author name">
+        <button type="submit">Search</button>
     </form>
+    <nav>
+        <a href="{{  url_for('add_book') }}">Add Book</a>
+        <a href="{{  url_for('add_author') }}">Add Author</a>
+    </nav>
+
 
     {% if books %}
     <div class="book-list">

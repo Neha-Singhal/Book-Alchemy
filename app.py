@@ -126,11 +126,8 @@ def add_book():
     authors = Author.query.all()
     return render_template('add_book.html', authors=authors)
 
-@app.route('/book/<int:book_id>/delete', methods=['GET','POST'])
+@app.route('/book/<int:book_id>/delete', methods=['POST'])
 def delete_book(book_id):
-    method = request.form.get('_method', 'POST')
-
-
     book = Book.query.get_or_404(book_id)
     author_id = book.author_id
 
@@ -144,7 +141,12 @@ def delete_book(book_id):
             db.session.delete(author)
             db.session.commit()
         flash(f"Book '{book.title}' has been deleted successfully!", 'success')
+    else:
+        flash(f"Book '{book.title}' was deleted.", 'success')
+
     return redirect(url_for('home'))
+
+
 
 
 if __name__ == '__main__':
