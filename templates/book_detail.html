@@ -12,7 +12,11 @@
 
     <div class="book-detail">
         <h1>{{ book.title }}</h1>
-        <p><strong>Author:</strong> <a href="{{ url_for('author_detail', author_id=book.author.id) }}">{{ book.author.name }}</a></p>
+         {% if book.author %}
+  <p><strong>Author:</strong> <a href="{{ url_for('author_detail', author_id=book.author.author_id) }}">{{ book.author.name }}</a></p>
+{% else %}
+  <p><strong>Author:</strong> Unknown</p>
+{% endif %}
         <p><strong>Year:</strong> {{ book.year }}</p>
         <p><strong>ISBN:</strong> {{ book.isbn }}</p>
         <img src="{{ book.cover_image }}" alt="Cover of {{ book.title }}">
