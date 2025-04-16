@@ -77,15 +77,28 @@ def get_cover_image(isbn):
 @app.route('/add_author', methods=['GET', 'POST'])
 def add_author():
     if request.method == 'POST':
-        name = request.form['name']
-        birth_date = request.form['birth_date']
-        date_of_death = request.form['date_of_death']
-        # Convert strings to date objects (handle empty date_of_death properly)
-        birth_date = datetime.strptime(birth_date, "%Y-%m-%d").date()
-        date_of_death = datetime.strptime(date_of_death, "%Y-%m-%d").date() if date_of_death else None
+        name = request.form['name'].strip()
+        birth_date_str = request.form['birth_date']
+        date_of_death_str = request.form['date_of_death']
+        #validation name not empty
+        if not name:
+            flash("Author name cannot be empty","error")
+            return redirect(url_for('add_author'))
 
+            # Parse dates
+        try:
+            birth_date = datetime.strptime(birth_date_str, "%Y-%m-%d").date() if birth_date_str else None
+        except ValueError:
+            flash("Invalid birth date format. Use YYYY-MM-DD.", "error")
+            return redirect(url_for('add_author'))
+
+        try:
+            date_of_death = datetime.strptime(date_of_death_str, "%Y-%m-%d").date() if date_of_death_str else None
+        except ValueError:
+            flash("Invalid date of death format. Use YYYY-MM-DD.", "error")
+            return redirect(url_for('add_author'))
+        #add author to db
         new_author = Author(name=name, birth_date=birth_date, date_of_death=date_of_death)
-
         db.session.add(new_author)
         db.session.commit()
 
@@ -98,33 +111,51 @@ def add_author():
 @app.route('/add_book', methods=['GET', 'POST'])
 def add_book():
     if request.method == 'POST':
-
         try:
-            print("request.form",request.form)
-            isbn = request.form.get('isbn')
-            title = request.form.get('title')
-
-            publication_year = request.form.get('publication_year')
+            isbn = request.form.get('isbn','').strip()
+            title = request.form.get('title','').strip()
+            publication_year = request.form.get('publication_year','').strip()
             author_id = int(request.form['author_id'])
-            new_book = Book(isbn=isbn, title=title, publication_year=publication_year, author_id=author_id)
 
+            # Validate required fields
+            if not isbn or not title or not publication_year or not author_id:
+                flash("All fields are required.", "danger")
+                return redirect(url_for('add_book'))
+
+            # Check for duplicate ISBN
+            if Book.query.filter_by(isbn=isbn).first():
+                flash("A book with this ISBN already exists.", "danger")
+                return redirect(url_for('add_book'))
+
+                # Validate author_id is a valid integer and exists
+            try:
+                author_id = int(author_id)
+                author = Author.query.get(author_id)
+                if not author:
+                    flash("Selected author does not exist.", "danger")
+                    return redirect(url_for('add_book'))
+            except ValueError:
+                flash("Invalid author selected.", "danger")
+                return redirect(url_for('add_book'))
+
+            # Create and save the book
+            new_book = Book(isbn=isbn, title=title, publication_year=publication_year, author_id=author_id)
             db.session.add(new_book)
             db.session.commit()
 
             flash(f"Book '{new_book.title}' has been successfully added!", 'success')
             return redirect(url_for('add_book'))
-        except KeyError as e:
-            flash(f"Missing form field: {str(e)}", "danger")
-            return redirect(url_for('add_book'))
 
         except Exception as e:
             db.session.rollback()
-            print(f"Error: {e}")
-            flash(f"Error: {str(e)}", "danger")
+            print(f"Unexpected Error: {e}")
+            flash("An unexpected error occurred. Please check your inputs and try again.", "danger")
             return redirect(url_for('add_book'))
 
+    # GET method: show the form
     authors = Author.query.all()
     return render_template('add_book.html', authors=authors)
+
 
 @app.route('/book/<int:book_id>/delete', methods=['POST'])
 def delete_book(book_id):
@@ -146,17 +177,17 @@ def delete_book(book_id):
 
     return redirect(url_for('home'))
 
+
 @app.route('/book/<int:book_id>')
 def book_detail(book_id):
     book = Book.query.get_or_404(book_id)
     return render_template('book_detail.html', book=book)
 
+
 @app.route('/author/<int:author_id>')
 def author_detail(author_id):
     author = Author.query.get_or_404(author_id)
     return render_template('author_detail.html',author=author)
-
-
 
 
 if __name__ == '__main__':
